@@ -1,0 +1,85 @@
+// PCVR: the startup splash. nopicmip because a quality preset that downsizes
+// textures should not soften the one image that is nothing but text and logos.
+guis/assets/pcvr_splash
+{
+	{
+		blend blend
+		map guis/assets/pcvr_splash.tga
+	}
+}
+
+// PCVR: the aim sight, our own art. PreyVR's own sight art was contributed by
+// others and is not used here; these are drawn from scratch by
+// tools/release/make_sight_art.py. The feature itself is lvonasek's code and
+// never left, and its contributors are credited in the README.
+//
+// red/green/blue/alpha come from the entity's shaderParms, which is how the
+// laser beam is tinted by game_player.cpp.
+
+pcvr/sight_beam
+{
+	noShadows
+	twoSided
+	translucent
+	{
+		blend	add
+		map	guis/assets/pcvr_sight/beam.tga
+		red	parm0
+		green	parm1
+		blue	parm2
+		alpha	parm3
+	}
+}
+
+pcvr/sight_dot
+{
+	noShadows
+	twoSided
+	translucent
+	{
+		blend	add
+		map	guis/assets/pcvr_sight/dot.tga
+		red	1
+		green	0.15
+		blue	0.15
+	}
+}
+
+pcvr/sight_circledot
+{
+	noShadows
+	twoSided
+	translucent
+	{
+		blend	add
+		map	guis/assets/pcvr_sight/circledot.tga
+		red	1
+		green	0.15
+		blue	0.15
+	}
+}
+
+pcvr/sight_cross
+{
+	noShadows
+	twoSided
+	translucent
+	{
+		blend	add
+		map	guis/assets/pcvr_sight/cross.tga
+		red	1
+		green	0.15
+		blue	0.15
+	}
+}
+
+// PCVR: what the retail viewmodel hands are drawn with instead of
+// models/weapons/hands/hands. No stages, so nothing is drawn - the same shape
+// as retail's own textures/common/nodraw. Its own name rather than nodraw
+// because skins/weapons/hiderProjDraw remaps textures/common/nodraw, and would
+// otherwise turn the hider's arms into a pane of glass.
+pcvr/viewhands
+{
+	nonsolid
+	noshadows
+}

@@ -1,0 +1,13 @@
+// PCVR: the aim sight modes. Our own file - retail's weapons.skin is not
+// touched. The base material on the quad is pcvr/sight_dot; these swap it.
+
+skin skins/pcvr/sightDot {
+}
+
+skin skins/pcvr/sightCircleDot {
+	pcvr/sight_dot	pcvr/sight_circledot
+}
+
+skin skins/pcvr/sightCross {
+	pcvr/sight_dot	pcvr/sight_cross
+}

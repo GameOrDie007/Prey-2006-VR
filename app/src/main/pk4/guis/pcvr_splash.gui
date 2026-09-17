@@ -1,0 +1,18 @@
+// PCVR: the port's startup splash. Our own file - no retail gui is touched.
+//
+// 640x360 inside the 640x480 logical space, because the art is 16:9 and
+// filling the box would squash it. The engine holds this gui for
+// pcvr_splashSeconds and then starts the main menu.
+
+windowDef Desktop {
+	rect		0, 0, 640, 480
+	backcolor	0, 0, 0, 1
+	nocursor	1
+	menugui		1
+
+	windowDef PCVR_SplashArt {
+		rect		0, 0, 640, 480
+		background	"guis/assets/pcvr_splash"
+		matcolor	1, 1, 1, 1
+	}
+}

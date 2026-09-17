@@ -1,0 +1,47 @@
+*3DSMAX_ASCIIEXPORT	200
+*COMMENT "PreyVR PCVR aim sight - generated, not exported. See tools/release/make_sight_art.py"
+*MATERIAL_LIST {
+	*MATERIAL_COUNT 1
+	*MATERIAL 0 {
+		*MATERIAL_NAME "pcvr_sight"
+		*MATERIAL_CLASS "Standard"
+		*MAP_DIFFUSE {
+			*MAP_NAME "pcvr_sight"
+			*MAP_CLASS "Bitmap"
+			*BITMAP "\\base\pcvr\sight_dot"
+		}
+	}
+}
+*GEOMOBJECT {
+	*NODE_NAME "pcvr_sight"
+	*MESH {
+		*TIMEVALUE 0
+		*MESH_NUMVERTEX 4
+		*MESH_NUMFACES 2
+		*MESH_VERTEX_LIST {
+			*MESH_VERTEX    0	0.0000	-0.5000	-0.5000
+			*MESH_VERTEX    1	0.0000	 0.5000	-0.5000
+			*MESH_VERTEX    2	0.0000	 0.5000	 0.5000
+			*MESH_VERTEX    3	0.0000	-0.5000	 0.5000
+		}
+		*MESH_FACE_LIST {
+			*MESH_FACE    0:    A:    0 B:    1 C:    2 AB:    1 BC:    1 CA:    1	 *MESH_SMOOTHING 1 	*MESH_MTLID 0
+			*MESH_FACE    1:    A:    0 B:    2 C:    3 AB:    1 BC:    1 CA:    1	 *MESH_SMOOTHING 1 	*MESH_MTLID 0
+		}
+		*MESH_NUMTVERTEX 4
+		*MESH_TVERTLIST {
+			*MESH_TVERT 0	0.0000	0.0000	0.0000
+			*MESH_TVERT 1	1.0000	0.0000	0.0000
+			*MESH_TVERT 2	1.0000	1.0000	0.0000
+			*MESH_TVERT 3	0.0000	1.0000	0.0000
+		}
+		*MESH_NUMTVFACES 2
+		*MESH_TFACELIST {
+			*MESH_TFACE 0	0	1	2
+			*MESH_TFACE 1	0	2	3
+		}
+	}
+	*PROP_CASTSHADOW 0
+	*PROP_RECVSHADOW 0
+	*MATERIAL_REF 0
+}

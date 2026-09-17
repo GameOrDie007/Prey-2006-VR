@@ -1,0 +1,61 @@
+# Android Studio
+.idea/
+.gradle/
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows shortcuts
+*.lnk
+
+# build files
+*.o
+*.d
+
+#libs
+*.a
+
+#model files
+*.mdl
+
+#files created by build
+*.apk
+*.ap_
+*.class
+drbeef-release-key.keystore
+*.json
+*.bin
+*.ser
+app/src/main/assets/vr_support.pk4
+
+# --- PCVR port ---
+# Game data is never committed. See tools/ for the asset-pack script.
+data/
+*.pk4
+/build/
+# note: not bare "build/" - that also matched tools/build/, which silently
+# kept every build and probe script out of the repo.
+# Vendored upstream tarballs carry their own build/ dirs; those stay out.
+app/src/main/jni/SupportLibs/**/build/
+cmake-build*/
+out/
+*.dll
+*.exe
+*.lib
+*.pdb
+*.ilk
+*.obj
+build-log-*.txt
+build-warnings.txt
+
+# headless sweep output, release staging
+tools/headless/out/
+dist/
+__pycache__/

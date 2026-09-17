@@ -1,0 +1,7 @@
+// PCVR: vr_viewHands 1. Puts the retail viewmodel hands and forearms
+// back, by mapping the empty material the four patched meshes name to
+// the real one. Our own file - retail's weapons.skin is not touched.
+
+skin skins/pcvr/viewhands {
+	pcvr/viewhands	models/weapons/hands/hands
+}
