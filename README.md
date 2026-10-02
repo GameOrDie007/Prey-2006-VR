@@ -399,3 +399,7 @@ design here - the weapon handling, the wheel, the comfort options, the
 recreated set pieces - is theirs. This repository adds a Windows/OpenXR
 platform layer, a flatscreen mode, an XInput gamepad, and the measurements
 that chose the PC defaults.
+
+---
+
+**Get an email when the next port ships:** follow [Game Or Die on Patreon](https://www.patreon.com/cw/GameOrDie) for free. Ports are never paywalled.
