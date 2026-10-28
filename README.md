@@ -50,14 +50,23 @@ and Setup will not ask you for any of it.
 A release is binaries, a launcher and the difference between Prey and PreyVR:
 about 8 MB, with no game data in it at all.
 
-1. Download the release zip and extract it anywhere.
-2. Run `Setup.bat` once.
-3. Start Virtual Desktop (or whichever OpenXR runtime you use) and put the
-   headset on.
-4. Run `Play PreyVR.bat`.
+**The easy way:** download **`Prey VR Installer.exe`** from the
+[latest release](https://github.com/GameOrDie007/Prey-2006-VR/releases/latest) and
+double-click it. If Windows says it protected your PC, click **More info**, then
+**Run anyway**: the installer is not code-signed. Press **INSTALL**. It finds your Prey, sets everything up and adds a desktop shortcut.
+Start your headset streaming, then press **PRESS START**.
+
+**By hand:** download the release zip, unzip it anywhere and double-click
+`Setup.bat`, then start Virtual Desktop (or whichever OpenXR runtime you use),
+put the headset on and run `Play PreyVR.bat` in the `VR` folder Setup makes
+inside your Prey folder.
+
+**Updating from 1.0:** run the installer or the new `Setup.bat`. A folder you
+unzipped by hand is updated where it is, and your saves and settings are kept.
 
 Setup finds Prey in your Steam libraries, or in your list of installed
-programs, and copies the 13 `.pk4` files out of it: about 1.7 GB. If it
+programs, and copies the 13 `.pk4` files out of it into that `VR` folder: about
+1.7 GB. If it
 cannot find Prey it prints the list of files and you drag them, or the whole
 `base` folder, onto the window. Nothing is downloaded and nothing is
 installed; it runs on the PowerShell that ships with Windows and needs no
