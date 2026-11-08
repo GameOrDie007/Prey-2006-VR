@@ -300,6 +300,44 @@ def main():
             ('build/Release/PreyVR.exe',
              lambda d: os.path.sep + 'game' + os.path.sep not in d)]
     newer = []
+    # PCVR: the exe has to agree with the release about what it is.
+    #
+    # PreyVR.exe carries a version resource now, set from -DPREYVR_VERSION at
+    # configure time. Forget the flag and it says 0.0.0 while everything else
+    # says the real version. That resource is not decoration: an unsigned
+    # binary with no metadata is one of the things antivirus heuristics weigh,
+    # and a user lost an hour to a silent quarantine before it existed.
+    def _exe_version(path):
+        try:
+            import ctypes, ctypes.wintypes
+            size = ctypes.windll.version.GetFileVersionInfoSizeW(path, None)
+            if not size:
+                return None
+            buf = ctypes.create_string_buffer(size)
+            if not ctypes.windll.version.GetFileVersionInfoW(path, 0, size, buf):
+                return None
+            value = ctypes.c_void_p()
+            length = ctypes.c_uint()
+            if not ctypes.windll.version.VerQueryValueW(
+                    buf, u'\\StringFileInfo\\040904b0\\FileVersion',
+                    ctypes.byref(value), ctypes.byref(length)):
+                return None
+            return ctypes.wstring_at(value.value, length.value).strip('\x00')
+        except Exception:
+            return None
+
+    _exe = os.path.join(REPO, 'build', 'Release', 'PreyVR.exe')
+    _got = _exe_version(_exe)
+    if _got is None:
+        sys.exit('PreyVR.exe carries no version information at all.\n'
+                 'Configure with -DPREYVR_VERSION=%s and rebuild. An unsigned\n'
+                 'binary with no metadata is what got it quarantined.' % version)
+    if _got != version:
+        sys.exit('PreyVR.exe says version %s but this is a %s release.\n'
+                 'Re-run configure with -DPREYVR_VERSION=%s and rebuild.'
+                 % (_got, version, version))
+    print('  PreyVR.exe version resource: %s' % _got)
+
     for relbin, belongs in BINS:
         binp = os.path.join(REPO, relbin)
         if not os.path.exists(binp):

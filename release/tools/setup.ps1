@@ -405,7 +405,35 @@ Say "  ====================="
 Say ""
 
 if (-not (Test-Path -PathType Leaf (PathJoin $InstallDir 'PreyVR.exe'))) {
-    Fail "Run this from the folder holding PreyVR.exe."
+    # Say WHERE, and what is there instead. "Run this from the right folder" is
+    # true and unhelpful, and it does not survive being read on a Windows in
+    # another language; a path and a file listing do.
+    Say ""
+    Say "  PreyVR.exe is not in this folder:"
+    Say ""
+    Say "      $InstallDir"
+    Say ""
+    $here = @(Get-ChildItem -LiteralPath $InstallDir -ErrorAction SilentlyContinue |
+              Select-Object -First 12 -ExpandProperty Name)
+    if ($here.Count -gt 0) {
+        Say "  What is here instead:"
+        foreach ($n in $here) { Say "      $n" }
+    } else {
+        Say "  The folder is empty."
+    }
+    Say ""
+    Say "  The two usual causes:"
+    Say ""
+    Say "    1. The zip was never extracted. Windows can run Setup.bat straight"
+    Say "       out of the archive, which copies that one file somewhere else on"
+    Say "       its own. Extract the whole zip to a real folder first, then run"
+    Say "       Setup.bat from there."
+    Say ""
+    Say "    2. An antivirus removed PreyVR.exe. It is unsigned, which is enough"
+    Say "       for some of them. Check the quarantine, and allow the folder if"
+    Say "       it is there."
+    Say ""
+    Fail "PreyVR.exe has to be in the same folder as Setup.bat."
 }
 # preybase ships empty now, and a zip does not carry an empty directory, so it
 # may not exist at all on a fresh extract. It used to be created for us by

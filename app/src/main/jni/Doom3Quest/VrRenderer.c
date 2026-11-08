@@ -65,12 +65,34 @@ void VR_UpdateStageBounds(ovrApp* pappState) {
 
 	XrResult result;
 	OXR(result = xrGetReferenceSpaceBoundsRect(pappState->Session, XR_REFERENCE_SPACE_TYPE_STAGE, &stageBounds));
+#if defined( _WIN32 )
+	// PCVR: only a real failure means there is no floor. SteamVR answers
+	// XR_SPACE_BOUNDS_UNAVAILABLE (7, a SUCCESS code) whenever no room boundary
+	// is drawn - standing-only setups, Steam Link, a Quest over Link with no
+	// Guardian passed through - while its STAGE space still sits on the floor
+	// it calibrated. Treating that as "no stage" dropped the game onto LOCAL
+	// minus a guessed 1.675 m, and SteamVR's LOCAL origin is not at the head,
+	// so the player stood a metre or more too tall.
+	// On Android the original rule stands.
+	{
+		const int fallback = XR_FAILED(result) || pappState->StageSpace == XR_NULL_HANDLE;
+		char line[160];
+		if (fallback) {
+			pappState->CurrentSpace = pappState->FakeStageSpace;
+		}
+		snprintf(line, sizeof(line), "PCVR floor: %s (stage bounds result %d, %.2f x %.2f m)",
+				 fallback ? "LOCAL with a 1.675 m guess - no stage space" : "the runtime's STAGE floor",
+				 (int)result, stageBounds.width, stageBounds.height);
+		PCVR_Log(line);
+	}
+#else
 	if (result != XR_SUCCESS) {
 		stageBounds.width = 1.0f;
 		stageBounds.height = 1.0f;
 
 		pappState->CurrentSpace = pappState->FakeStageSpace;
 	}
+#endif
 }
 
 void VR_GetResolution(engine_t* engine, int *pWidth, int *pHeight) {

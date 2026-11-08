@@ -1538,8 +1538,31 @@
 							}
 						}
 
-						buttonDef OVR_Cheat_MixedReality {
+						buttonDef OVR_Cheat_God {
 							rect			10, 130, 400, 25
+							leftMat			"guis/assets/menu/textbar_corner.tga"
+							middleMat		"guis/assets/menu/textbarstrip.tga"
+							rightMat		"guis/assets/menu/textbar_invcorner.tga"
+							visible			1
+
+							windowDef OVR_Title_God {
+								rect		0, 0, 200, 25
+								forecolor	SUBMENU_BOTTOMBAR_FORECOLOR_COMMA
+								hovercolor	SUBMENU_BOTTOMBAR_HOVERCOLOR_COMMA
+								textalign	1
+								textaligny	0
+								textscale	0.33
+								shadow		1
+								text		"god mode"
+								onAction {
+									set	"cmd" "cheat god";
+									set "cmd" "play guisounds_menu_clickin" ;
+								}
+							}
+						}
+
+						buttonDef OVR_Cheat_MixedReality {
+							rect			10, 160, 400, 25
 							leftMat			"guis/assets/menu/textbar_corner.tga"
 							middleMat		"guis/assets/menu/textbarstrip.tga"
 							rightMat		"guis/assets/menu/textbar_invcorner.tga"

@@ -114,7 +114,27 @@ set(PREYVR_INCLUDES
 
 # ---------------------------------------------------------------- engine
 
-add_executable(PreyVR ${PREYVR_ENGINE_SOURCES})
+# The binary used to carry no version information at all - no company, no
+# description, no version - which on an unsigned executable is one of the
+# things antivirus heuristics weigh. A user lost an hour to Defender
+# quarantining it with no message. This is not a substitute for signing it,
+# but it costs nothing and it fills the Details tab and the SmartScreen prompt
+# with the truth instead of "unknown".
+#
+# Pass -DPREYVR_VERSION=1.0.1 when configuring a release build; package.py
+# checks that what it is packaging says what it claims.
+set(PREYVR_VERSION "0.0.0" CACHE STRING "Version written into PreyVR.exe")
+string(REPLACE "." "," PREYVR_VERSION_COMMA "${PREYVR_VERSION}")
+if(PREYVR_VERSION_COMMA MATCHES "^[0-9]+,[0-9]+$")
+    set(PREYVR_VERSION_COMMA "${PREYVR_VERSION_COMMA},0,0")
+elseif(PREYVR_VERSION_COMMA MATCHES "^[0-9]+,[0-9]+,[0-9]+$")
+    set(PREYVR_VERSION_COMMA "${PREYVR_VERSION_COMMA},0")
+endif()
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/src/main/win/preyvr.rc.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/preyvr.rc" @ONLY)
+
+add_executable(PreyVR ${PREYVR_ENGINE_SOURCES} "${CMAKE_CURRENT_BINARY_DIR}/preyvr.rc")
 
 target_compile_definitions(PreyVR PRIVATE
     ${PREYVR_COMMON_DEFS}

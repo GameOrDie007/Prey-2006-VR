@@ -139,7 +139,7 @@ swaps the sticks). These are lvonasek's bindings, unchanged.
 |---|---|
 | Right trigger | fire |
 | Right grip | alternate fire |
-| Right stick left / right | turn: smooth by default at `pcvr_smoothTurnSpeed` degrees per second, `vr_turnmode 0` for snap at `vr_turnangle` degrees |
+| Right stick left / right | turn: smooth by default; for snap turning pick **Options → VR → Turn mode: snap** (15, 30 or 45 degrees under Turn angle speed) |
 | Right stick up / down | weapon wheel (hold, pick, release); `vr_weaponToggle 0` makes it previous / next weapon instead. Also zooms the rifle |
 | A | crouch |
 | B | jump |
@@ -149,13 +149,13 @@ swaps the sticks). These are lvonasek's bindings, unchanged.
 | Left grip | two-handed hold, which zooms the weapons that zoom |
 | X | lighter |
 | Y | throw grenade |
+| Left trigger + left grip + Y | god mode on / off, the same chord as on the Quest; it is also a button on **Options → Cheats** |
 | Menu button (either hand) | pause menu |
 | In menus | point and pull either trigger |
 
 Height adjust, snap or smooth turn, weapon hand and the rest are on the
 **Options → VR** page in the game's own menu. There is also a Cheats tab
-on that page, exactly as on the Quest; it is lvonasek's and it is not hidden
-here.
+with give all, give health, noclip and god mode, always visible.
 
 **Gamepad in flatscreen:** left stick moves, right stick looks, right
 trigger fires, left trigger is alternate fire; every button lands on the

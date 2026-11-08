@@ -1,0 +1,48 @@
+// Version information for PreyVR.exe.
+//
+// This exists because the binary had none at all. Every field an antivirus and
+// Windows itself look at - company, description, product, version, copyright -
+// was empty, on an 11.7 MB unsigned executable that writes files beside itself
+// and is launched from a .bat. That combination is what heuristics are built to
+// catch, and a user lost an hour to Defender quarantining it silently.
+//
+// A version resource is not a trick to evade anything. It is the metadata every
+// legitimate Windows program carries, it is what fills the Details tab of the
+// file's properties, and it is what a SmartScreen prompt reads out instead of
+// saying "unknown publisher" about an unnamed file.
+//
+// It is not a substitute for signing. Signing is the actual fix and costs money
+// every year; this costs nothing and removes one of the reasons a scanner is
+// suspicious in the first place.
+
+#include <winver.h>
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     @PREYVR_VERSION_COMMA@
+PRODUCTVERSION  @PREYVR_VERSION_COMMA@
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+FILEFLAGS       0
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+FILESUBTYPE     VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName",      "Game Or Die"
+            VALUE "FileDescription",  "PreyVR PCVR - Prey (2006) in virtual reality"
+            VALUE "FileVersion",      "@PREYVR_VERSION@"
+            VALUE "InternalName",     "PreyVR"
+            VALUE "OriginalFilename", "PreyVR.exe"
+            VALUE "ProductName",      "PreyVR PCVR"
+            VALUE "ProductVersion",   "@PREYVR_VERSION@"
+            VALUE "LegalCopyright",   "GPL v3. Prey is a trademark of its owners; no game data is distributed."
+            VALUE "Comments",         "https://github.com/GameOrDie007/Prey-2006-VR"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

@@ -1086,6 +1086,23 @@ void Doom3Quest_getHMDOrientation() {
 	Vector4Set(vr.hmdorientation_quat, quatHmd.x, quatHmd.y, quatHmd.z, quatHmd.w);
 	VectorSubtract(vr.hmdposition_last, vr.hmdposition, vr.hmdposition_delta);
 	VectorCopy(vr.hmdposition, vr.hmdposition_last);
+
+#if defined( _WIN32 )
+	// PCVR: the game stands the player at (head height - 1.5 m) x vr_trackingScale
+	// above the character's eye, so the head height the runtime reports IS the
+	// player's size in the world. Print it once, about ten seconds in, so a
+	// "too tall / too short" report carries the number instead of a guess.
+	{
+		static int frames = 0;
+		if (frames >= 0 && ++frames > 900) {
+			char line[128];
+			snprintf(line, sizeof(line), "PCVR head height above the floor: %.2f m (1.5 m = the character's own eye)",
+					 positionHmd.y);
+			PCVR_Log(line);
+			frames = -1;
+		}
+	}
+#endif
 }
 
 /*

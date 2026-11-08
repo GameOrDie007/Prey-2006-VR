@@ -8,6 +8,7 @@
 #define gettid() ( (int)GetCurrentThreadId() )
 #endif
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,6 +39,66 @@ static bool vr_haveCylinderLayer = false;
 
 bool VR_HasCylinderLayer( void ) {
 	return vr_haveCylinderLayer;
+}
+
+// PCVR: say why, where the player can read it.
+//
+// ALOGE is printf here, and this is a GUI subsystem binary with no console, so
+// every fatal VR error before the engine starts was invisible - the process
+// just exited. A user reported exactly that, as "the game will not load".
+//
+// The file matters as much as the dialog: a message box they clicked away is
+// gone, and a text file beside the exe is something they can paste.
+static void PCVR_VrFatal( const char* title, const char* fmt, ... ) {
+	char body[4096];
+	va_list ap;
+	va_start( ap, fmt );
+	vsnprintf( body, sizeof( body ), fmt, ap );
+	va_end( ap );
+
+	char path[MAX_PATH];
+	if ( GetModuleFileNameA( NULL, path, MAX_PATH ) ) {
+		char* slash = strrchr( path, '\\' );
+		if ( slash ) {
+			slash[1] = 0;
+			strncat( path, "PreyVR-vr-error.txt", MAX_PATH - strlen( path ) - 1 );
+			FILE* f = fopen( path, "w" );
+			if ( f ) {
+				fprintf( f, "%s\n\n%s\n", title, body );
+				fclose( f );
+			}
+		}
+	}
+
+	MessageBoxA( NULL, body, title, MB_OK | MB_ICONERROR );
+	exit( 1 );
+}
+
+// Every extension the active runtime advertises, newline separated, for the
+// error above. Guessing which one is missing costs a round trip through a
+// person; printing the list costs nothing.
+static void PCVR_RuntimeExtensionList( char* out, size_t outSize ) {
+	out[0] = 0;
+	uint32_t count = 0;
+	if ( XR_FAILED( xrEnumerateInstanceExtensionProperties( NULL, 0, &count, NULL ) ) || count == 0 ) {
+		strncpy( out, "  (the runtime advertised none)", outSize - 1 );
+		return;
+	}
+	XrExtensionProperties* props = (XrExtensionProperties*)calloc( count, sizeof( XrExtensionProperties ) );
+	if ( !props ) {
+		return;
+	}
+	for ( uint32_t i = 0; i < count; i++ ) {
+		props[i].type = XR_TYPE_EXTENSION_PROPERTIES;
+	}
+	if ( XR_SUCCEEDED( xrEnumerateInstanceExtensionProperties( NULL, count, &count, props ) ) ) {
+		for ( uint32_t i = 0; i < count; i++ ) {
+			strncat( out, "  ", outSize - strlen( out ) - 1 );
+			strncat( out, props[i].extensionName, outSize - strlen( out ) - 1 );
+			strncat( out, "\n", outSize - strlen( out ) - 1 );
+		}
+	}
+	free( props );
 }
 
 static bool PCVR_RuntimeHasExtension( const char* name ) {
@@ -128,6 +189,26 @@ void VR_Init( void* system, const char* name, int version ) {
 	// passthrough and performance-settings are not, which is why those
 	// platform flags stay false on PC. Asking for an unsupported
 	// extension fails instance creation outright.
+	// PCVR: this one is NOT optional. Doom 3 renders in OpenGL and there is no
+	// other path, so a runtime without it cannot run this game at all. Checked
+	// here rather than left to fail inside xrCreateInstance, because that
+	// failure used to be silent and is what a user reported as "will not load".
+	if ( !PCVR_RuntimeHasExtension( XR_KHR_OPENGL_ENABLE_EXTENSION_NAME ) ) {
+		char list[3072];
+		PCVR_RuntimeExtensionList( list, sizeof( list ) );
+		PCVR_VrFatal( "PreyVR: this OpenXR runtime cannot run OpenGL",
+				"Your active OpenXR runtime does not support OpenGL\n"
+				"(%s), and Prey renders in OpenGL.\n"
+				"\n"
+				"The usual fix is to make SteamVR your OpenXR runtime:\n"
+				"  SteamVR  ->  Settings  ->  OpenXR  ->  Set SteamVR as OpenXR Runtime\n"
+				"\n"
+				"Then start the game again. Your headset still works the same way;\n"
+				"only which runtime handles OpenXR changes.\n"
+				"\n"
+				"What this runtime does advertise:\n%s",
+				XR_KHR_OPENGL_ENABLE_EXTENSION_NAME, list );
+	}
 	extensions[extensionsCount++] = XR_KHR_OPENGL_ENABLE_EXTENSION_NAME;
 
 	// PCVR: both of these are optional, and a runtime lacking either must still
@@ -183,6 +264,26 @@ void VR_Init( void* system, const char* name, int version ) {
 	OXR(initResult = xrCreateInstance(&instanceCreateInfo, &vr_engine.appState.Instance));
 	if (initResult != XR_SUCCESS) {
 		ALOGE("Failed to create XR instance: %d.", initResult);
+#if defined( _WIN32 )
+		// PCVR: this used to be the silent exit. Whatever the reason, the
+		// player now gets the code and the runtime's own extension list, which
+		// is enough to say which piece is missing without another round trip.
+		{
+			char list[3072];
+			PCVR_RuntimeExtensionList( list, sizeof( list ) );
+			PCVR_VrFatal( "PreyVR: could not start VR",
+					"The OpenXR runtime refused to start this game.\n"
+					"\n"
+					"xrCreateInstance failed with code %d.\n"
+					"\n"
+					"If you have more than one runtime installed, try making\n"
+					"SteamVR the active one:\n"
+					"  SteamVR  ->  Settings  ->  OpenXR  ->  Set SteamVR as OpenXR Runtime\n"
+					"\n"
+					"What this runtime advertises:\n%s",
+					(int)initResult, list );
+		}
+#endif
 		exit(1);
 	}
 
