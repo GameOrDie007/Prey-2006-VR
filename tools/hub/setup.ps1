@@ -50,7 +50,7 @@ $ProgressPreference = 'SilentlyContinue'
 
 $Product = 'Prey VR'
 $ProductFile = 'Prey VR'
-$Version = '1.0.1'
+$Version = '1.0.3'
 $Title = 'Prey VR'
 $Engine = 'PreyVR.exe'
 $EngineArgs = '+set logFile 2'
@@ -70,6 +70,11 @@ $Here = (Resolve-Path -LiteralPath $PSScriptRoot).ProviderPath
 # installed VR folder (Uninstall, Collect logs), this script sits in VR\tools.
 $Package = $null
 if (Test-Path -LiteralPath (Join-Path $Here $Engine)) { $Package = $Here }
+# The version comes from the version.txt packed beside this script, so it cannot go stale.
+if ($Package -and (Test-Path -LiteralPath (Join-Path $Package 'version.txt'))) {
+    $first = [string](Get-Content -LiteralPath (Join-Path $Package 'version.txt') -TotalCount 1)
+    if ($first -match '(\d+\.\d+(\.\d+)*)\s*$') { $Version = $Matches[1] }
+}
 $ToolsDir = Join-Path $Here 'tools'
 if (-not (Test-Path -LiteralPath (Join-Path $ToolsDir 'prepare-data.ps1'))) { $ToolsDir = $Here }
 
@@ -622,6 +627,10 @@ function Remove-Listed([string] $vr, [switch] $Update) {
         if (-not $p.StartsWith((Full-Path $vr) + '\', [StringComparison]::OrdinalIgnoreCase)) { continue }
         if ((Test-Path -LiteralPath $p -PathType Leaf) -and -not (Is-Kept $vr $p)) { Remove-Item -LiteralPath $p -Force }
     }
+    # The last game log goes to TEMP first, so a report sent after an uninstall or reinstall still has it.
+    $lastLog = Join-Path ([System.IO.Path]::GetTempPath()) 'prey-vr-last-qconsole.log'
+    $ql = Get-ChildItem -LiteralPath $vr -Recurse -File -Filter 'qconsole.log' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if ($ql) { try { Copy-Item -LiteralPath $ql.FullName -Destination $lastLog -Force } catch { } }
     foreach ($f in Get-ChildItem -LiteralPath $vr -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $EngineOutput -contains $_.Name }) { Remove-Item -LiteralPath $f.FullName -Force }
 }
 
@@ -802,6 +811,9 @@ function Do-Collect {
         foreach ($l in Get-ChildItem -LiteralPath (PathJoin $vr 'saves\preybase') -Filter '*.log' -File -ErrorAction SilentlyContinue) { Copy-Item -LiteralPath $l.FullName -Destination $work }
         Log ('Logs from ' + $vr)
     } else { Log 'No install was found; collecting what this PC can say.' }
+    # The game log from before the last uninstall or reinstall (Remove-Listed keeps it).
+    $lastLog = Join-Path ([System.IO.Path]::GetTempPath()) 'prey-vr-last-qconsole.log'
+    if (Test-Path -LiteralPath $lastLog) { Copy-Item -LiteralPath $lastLog -Destination (Join-Path $work 'qconsole-before-reinstall.log') }
     foreach ($m in @('install', 'uninstall')) {
         $p = Join-Path ([System.IO.Path]::GetTempPath()) ('prey-vr-' + $m + '.txt')
         if (Test-Path -LiteralPath $p) { Copy-Item -LiteralPath $p -Destination $work }

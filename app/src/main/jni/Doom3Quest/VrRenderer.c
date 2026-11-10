@@ -44,6 +44,18 @@ XrView* projections;
 bool initialized = false;
 bool stageBoundsDirty = true;
 bool stageSupported = false;
+
+#if defined( _WIN32 )
+// PCVR: the too-tall safety net. Some SteamVR setups report the headset far
+// above the floor (a room setup with the floor set wrong, or a floor the
+// runtime never calibrated), and the game turns that straight into the
+// player's size, leaving them far too tall. When the head
+// reads above 2.1 m for two seconds, the floor is raised once so the head
+// sits at 1.65 m. No standing adult's eyes are at 2.1 m, so a correct floor
+// (Virtual Desktop, a calibrated SteamVR room) never triggers it.
+static float	pcvr_floorShift = 0.0f;		// metres the floor has been raised by
+static float	pcvr_pendingShift = 0.0f;	// applied at the start of the next frame
+#endif
 int vrConfig[VR_CONFIG_MAX] = {0};
 float vrConfigFloat[VR_CONFIG_FLOAT_MAX] = {0};
 PFN_xrGetDisplayRefreshRateFB pfnGetDisplayRefreshRate = NULL;
@@ -242,6 +254,9 @@ void VR_Recenter(engine_t* engine) {
 	if (VR_GetPlatformFlag(VR_PLATFORM_TRACKING_FLOOR)) {
 		spaceCreateInfo.poseInReferenceSpace.position.y = -1.6750f;
 	}
+#if defined( _WIN32 )
+	spaceCreateInfo.poseInReferenceSpace.position.y += pcvr_floorShift;
+#endif
 	OXR(xrCreateReferenceSpace(engine->appState.Session, &spaceCreateInfo, &engine->appState.FakeStageSpace));
 	ALOGV("Created fake stage space from local space with offset");
 	engine->appState.CurrentSpace = engine->appState.FakeStageSpace;
@@ -249,6 +264,9 @@ void VR_Recenter(engine_t* engine) {
 	if (stageSupported) {
 		spaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
 		spaceCreateInfo.poseInReferenceSpace.position.y = 0.0;
+#if defined( _WIN32 )
+		spaceCreateInfo.poseInReferenceSpace.position.y += pcvr_floorShift;
+#endif
 		OXR(xrCreateReferenceSpace(engine->appState.Session, &spaceCreateInfo, &engine->appState.StageSpace));
 		ALOGV("Created stage space");
 		if (VR_GetPlatformFlag(VR_PLATFORM_TRACKING_FLOOR)) {
@@ -395,6 +413,39 @@ bool VR_InitFrame( engine_t* engine ) {
 		stageBoundsDirty = false;
 	}
 
+#if defined( _WIN32 )
+	// PCVR: raise the floor between frames, rebuilding the same space the
+	// game is using (STAGE or the LOCAL fallback) with the shift added.
+	if (pcvr_pendingShift != 0.0f) {
+		ovrApp* app = &engine->appState;
+		const int wasStage = app->StageSpace != XR_NULL_HANDLE && app->CurrentSpace == app->StageSpace;
+		XrReferenceSpaceCreateInfo info = {0};
+		info.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
+		info.poseInReferenceSpace = XrPosef_Identity();
+		pcvr_floorShift += pcvr_pendingShift;
+		pcvr_pendingShift = 0.0f;
+		if (app->StageSpace != XR_NULL_HANDLE) {
+			OXR(xrDestroySpace(app->StageSpace));
+			app->StageSpace = XR_NULL_HANDLE;
+		}
+		if (app->FakeStageSpace != XR_NULL_HANDLE) {
+			OXR(xrDestroySpace(app->FakeStageSpace));
+		}
+		info.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
+		info.poseInReferenceSpace.position.y = (VR_GetPlatformFlag(VR_PLATFORM_TRACKING_FLOOR) ? -1.6750f : 0.0f) + pcvr_floorShift;
+		OXR(xrCreateReferenceSpace(app->Session, &info, &app->FakeStageSpace));
+		app->CurrentSpace = app->FakeStageSpace;
+		if (stageSupported) {
+			info.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
+			info.poseInReferenceSpace.position.y = pcvr_floorShift;
+			OXR(xrCreateReferenceSpace(app->Session, &info, &app->StageSpace));
+			if (wasStage) {
+				app->CurrentSpace = app->StageSpace;
+			}
+		}
+	}
+#endif
+
 	// Update passthrough
 	//
 	// PCVR: the platform-flag guard is added. Every other passthrough call site
@@ -450,6 +501,25 @@ bool VR_InitFrame( engine_t* engine ) {
 	// one handed to the compositor can be told apart. See PCVR_NotePoseGen.
 	vr_locateGen++;
 	PCVR_NoteLocate();
+
+#if defined( _WIN32 )
+	{
+		static int tallFrames = 0;
+		static int checked = 0;
+		if (!checked && (viewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) && projectionCountOutput >= 2) {
+			const float y = (projections[0].pose.position.y + projections[1].pose.position.y) * 0.5f;
+			tallFrames = (y > 2.10f) ? tallFrames + 1 : 0;
+			if (tallFrames >= 180) {
+				char line[160];
+				pcvr_pendingShift = y - 1.65f;
+				checked = 1;
+				snprintf(line, sizeof(line), "PCVR floor: head read %.2f m above the runtime's floor for 2 s - floor raised %.2f m so the head sits at 1.65 m",
+						 y, pcvr_pendingShift);
+				PCVR_Log(line);
+			}
+		}
+	}
+#endif
 
 	// Update controllers
 	IN_VRInputFrame(engine);
